@@ -18,6 +18,8 @@ func main() {
 	s = append(s, 68)
 	s = append(s, 90)
 	log.Printf("Unordered list: %v", s)
-	orderedSlice := sorting.IntSort(s)
-	log.Printf("Ordered list using insertion sort method: %v", orderedSlice)
+	l := sorting.SliceInteger(s)
+	l.Sort()
+	//l := sorting.SortCalculator{sorting.SliceInteger(s)}
+	log.Printf("Ordered list using insertion sort method: %v", l)
 }

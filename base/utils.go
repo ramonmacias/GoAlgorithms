@@ -2,6 +2,15 @@ package base
 
 import "strings"
 
+type Integer int
+type Float float64
+type String string
+
+type Calculator interface {
+	Less(a, b interface{}) bool
+	Exchange(s, i, j interface{}) interface{}
+}
+
 func IntLess(a, b int) bool {
 	return a < b
 }
