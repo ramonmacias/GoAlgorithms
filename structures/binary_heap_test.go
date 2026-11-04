@@ -6,9 +6,10 @@ import (
 )
 
 func TestBinaryHeapRemovesValuesInAscendingOrder(t *testing.T) {
-	implementations := map[string]bool{
-		"fast insert": true,
-		"fast remove": false,
+	implementations := map[string]BinaryHeapModeImpl{
+		"fast insert":  FastInsert,
+		"fast remove":  FastRemove,
+		"equilibrated": Equilibrated,
 	}
 	testCases := map[string]struct {
 		input []int
@@ -40,11 +41,11 @@ func TestBinaryHeapRemovesValuesInAscendingOrder(t *testing.T) {
 		},
 	}
 
-	for implementation, fastInsert := range implementations {
+	for implementation, mode := range implementations {
 		t.Run(implementation, func(t *testing.T) {
 			for name, tc := range testCases {
 				t.Run(name, func(t *testing.T) {
-					heap := BuildBinaryHeap(fastInsert)
+					heap := BuildBinaryHeap(mode)
 					for _, value := range tc.input {
 						heap.Insert(value)
 					}
@@ -64,12 +65,13 @@ func TestBinaryHeapRemovesValuesInAscendingOrder(t *testing.T) {
 }
 
 func TestBinaryHeapSupportsInterleavedOperations(t *testing.T) {
-	for name, fastInsert := range map[string]bool{
-		"fast insert": true,
-		"fast remove": false,
+	for name, mode := range map[string]BinaryHeapModeImpl{
+		"fast insert":  FastInsert,
+		"fast remove":  FastRemove,
+		"equilibrated": Equilibrated,
 	} {
 		t.Run(name, func(t *testing.T) {
-			heap := BuildBinaryHeap(fastInsert)
+			heap := BuildBinaryHeap(mode)
 			heap.Insert(5)
 			heap.Insert(1)
 
