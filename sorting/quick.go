@@ -1,0 +1,82 @@
+package sorting
+
+import "math/rand"
+
+// Quick attempts to sort a in place using randomized two-way quicksort. The
+// intended approach partitions around a pivot and recursively sorts each side.
+//
+// A correct randomized two-way quicksort takes O(n log n) time on average and
+// O(n^2) in the worst case. Balanced partitions use O(log n) stack space;
+// repeatedly unbalanced partitions can use O(n). Swapping across partitions
+// makes the algorithm unstable.
+//
+// This implementation is incomplete: it skips the final element during
+// partitioning and can recurse on an unchanged range when m == l. It therefore
+// does not guarantee termination, and the usual complexity bounds above do
+// not apply to this implementation. Use QuickImproved for a working version.
+//
+// Quicksort was introduced by C. A. R. (Tony) Hoare in the early 1960s. Its
+// central idea is to partition before recursing, rather than merge sorted
+// halves afterward as merge sort does.
+func Quick(a []int) {
+	var sortRange func(l, r int)
+	sortRange = func(l, r int) {
+		if r-l <= 1 {
+			return
+		}
+		x := a[rand.Intn(r-l)+l]
+		m := l
+		for i := l; i < r-1; i++ {
+			if a[i] < x {
+				a[i], a[m] = a[m], a[i]
+				m++
+			}
+		}
+		sortRange(l, m)
+		sortRange(m, r)
+	}
+	sortRange(0, len(a))
+}
+
+// QuickImproved sorts a in place, partitioning into values below, equal to,
+// and above a random pivot. Only the below and above partitions need recursion.
+// The equal block contains at least the pivot, so both recursive ranges shrink.
+//
+// Each partition scans its range once. Expected time is O(n log n) for distinct
+// values, while an all-equal input takes O(n): one scan finishes the entire
+// slice. The worst case remains O(n^2) if pivot choices repeatedly produce
+// unbalanced partitions. Partitioning uses O(1) extra space, with expected
+// O(log n) and worst-case O(n) recursion stack space. The sort is unstable
+// because swaps can change the relative order of equal values.
+//
+// This variant combines Hoare's quicksort with Dijkstra's Dutch National Flag
+// partitioning, which groups values into three regions in one pass. Skipping
+// the equal region avoids repeatedly sorting duplicate keys.
+//
+// Reference: https://algs4.cs.princeton.edu/23quicksort/
+func QuickImproved(a []int) {
+	var sortRange func(l, r int)
+	sortRange = func(l, r int) {
+		if r-l <= 1 {
+			return
+		}
+		x := a[rand.Intn(r-l)+l]
+		lt, i, gt := l, l, r
+		for i < gt {
+			switch {
+			case a[i] < x:
+				a[lt], a[i] = a[i], a[lt]
+				lt++
+				i++
+			case a[i] > x:
+				gt--
+				a[i], a[gt] = a[gt], a[i]
+			default:
+				i++
+			}
+		}
+		sortRange(l, lt)
+		sortRange(gt, r)
+	}
+	sortRange(0, len(a))
+}
