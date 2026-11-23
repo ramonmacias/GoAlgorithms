@@ -48,6 +48,15 @@ func testQuick(t *testing.T, sortFunc func([]int)) {
 }
 
 func TestQuickSelect(t *testing.T) {
+	testQuickSelect(t, sorting.QuickSelect)
+}
+
+func TestMedianOfMediansSelect(t *testing.T) {
+	testQuickSelect(t, sorting.MedianOfMediansSelect)
+}
+
+func testQuickSelect(t *testing.T, selectFunc func([]int, int) int) {
+	t.Helper()
 	cases := map[string][]int{
 		"single":       {42},
 		"two reversed": {2, 1},
@@ -68,8 +77,8 @@ func TestQuickSelect(t *testing.T) {
 			want := slices.Clone(input)
 			slices.Sort(want)
 			for k, expected := range want {
-				if got := sorting.QuickSelect(slices.Clone(input), k); got != expected {
-					t.Fatalf("QuickSelect(%v, %d) = %d, want %d", input, k, got, expected)
+				if got := selectFunc(slices.Clone(input), k); got != expected {
+					t.Fatalf("select(%v, %d) = %d, want %d", input, k, got, expected)
 				}
 			}
 		})
@@ -77,6 +86,18 @@ func TestQuickSelect(t *testing.T) {
 }
 
 func TestQuickSelectInvalidIndex(t *testing.T) {
+	for implementation, selectFunc := range map[string]func([]int, int) int{
+		"randomized":        sorting.QuickSelect,
+		"median of medians": sorting.MedianOfMediansSelect,
+	} {
+		t.Run(implementation, func(t *testing.T) {
+			testQuickSelectInvalidIndex(t, selectFunc)
+		})
+	}
+}
+
+func testQuickSelectInvalidIndex(t *testing.T, selectFunc func([]int, int) int) {
+	t.Helper()
 	for name, tc := range map[string]struct {
 		input []int
 		k     int
@@ -92,7 +113,7 @@ func TestQuickSelectInvalidIndex(t *testing.T) {
 					t.Fatal("expected panic for invalid k")
 				}
 			}()
-			sorting.QuickSelect(tc.input, tc.k)
+			selectFunc(tc.input, tc.k)
 		})
 	}
 }

@@ -1,6 +1,9 @@
 package sorting
 
-import "math/rand"
+import (
+	"math/rand"
+	"slices"
+)
 
 // Quick attempts to sort a in place using randomized two-way quicksort. The
 // intended approach partitions around a pivot and recursively sorts each side.
@@ -125,4 +128,68 @@ func QuickSelect(a []int, k int) int {
 		}
 	}
 	return find(0, len(a))
+}
+
+// MedianOfMediansSelect returns the value at zero-based index k in sorted order,
+// modifying a in place. It divides values into groups of at most five, takes
+// each group's median, and recursively selects the median of those medians as a
+// deterministic pivot. That pivot guarantees enough progress on every
+// partition, giving O(n) time in the best, average, and worst cases. This
+// implementation uses O(n) auxiliary space and O(log n) recursion depth. It
+// panics when k is outside [0, len(a)).
+//
+// Manuel Blum, Robert W. Floyd, Vaughan Pratt, Ronald L. Rivest, and Robert E.
+// Tarjan introduced this selection method as PICK in their 1973 paper "Time
+// Bounds for Selection." It is now commonly called median of medians or BFPRT,
+// after the authors' surnames. Their work proved for the first time that an
+// arbitrary order statistic can be selected in deterministic worst-case linear
+// time, unlike randomized quickselect's O(n^2) worst case.
+func MedianOfMediansSelect(a []int, k int) int {
+	if k < 0 || k >= len(a) {
+		panic("sorting.MedianOfMediansSelect: k out of range")
+	}
+	var find func(l, r int) int
+	find = func(l, r int) int {
+		if r-l == 1 {
+			return a[k]
+		}
+		x := medianOfMediansPivot(a[l:r])
+		lt, i, gt := l, l, r
+		for i < gt {
+			switch {
+			case a[i] < x:
+				a[lt], a[i] = a[i], a[lt]
+				lt++
+				i++
+			case a[i] > x:
+				gt--
+				a[i], a[gt] = a[gt], a[i]
+			default:
+				i++
+			}
+		}
+		switch {
+		case k < lt:
+			return find(l, lt)
+		case k >= gt:
+			return find(gt, r)
+		default:
+			return x
+		}
+	}
+	return find(0, len(a))
+}
+
+func medianOfMediansPivot(a []int) int {
+	medians := make([]int, 0, (len(a)+4)/5)
+	for start := 0; start < len(a); start += 5 {
+		end := min(start+5, len(a))
+		group := slices.Clone(a[start:end])
+		Insertion(group)
+		medians = append(medians, group[len(group)/2])
+	}
+	if len(medians) == 1 {
+		return medians[0]
+	}
+	return MedianOfMediansSelect(medians, len(medians)/2)
 }
