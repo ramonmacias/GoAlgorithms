@@ -46,3 +46,53 @@ func testQuick(t *testing.T, sortFunc func([]int)) {
 		})
 	}
 }
+
+func TestQuickSelect(t *testing.T) {
+	cases := map[string][]int{
+		"single":       {42},
+		"two reversed": {2, 1},
+		"sorted":       {1, 2, 3, 4, 5},
+		"reversed":     {5, 4, 3, 2, 1},
+		"duplicates":   {3, 1, 2, 3, 1, 2},
+		"equal":        {8, 8, 8, 8},
+		"mixed signs":  {0, -10, 7, -3, 7, 2},
+	}
+	rng := rand.New(rand.NewSource(1))
+	values := make([]int, 100)
+	for i := range values {
+		values[i] = rng.Intn(101) - 50
+	}
+	cases["random"] = values
+	for name, input := range cases {
+		t.Run(name, func(t *testing.T) {
+			want := slices.Clone(input)
+			slices.Sort(want)
+			for k, expected := range want {
+				if got := sorting.QuickSelect(slices.Clone(input), k); got != expected {
+					t.Fatalf("QuickSelect(%v, %d) = %d, want %d", input, k, got, expected)
+				}
+			}
+		})
+	}
+}
+
+func TestQuickSelectInvalidIndex(t *testing.T) {
+	for name, tc := range map[string]struct {
+		input []int
+		k     int
+	}{
+		"nil":      {nil, 0},
+		"empty":    {[]int{}, 0},
+		"negative": {[]int{1}, -1},
+		"past end": {[]int{1}, 1},
+	} {
+		t.Run(name, func(t *testing.T) {
+			defer func() {
+				if recover() == nil {
+					t.Fatal("expected panic for invalid k")
+				}
+			}()
+			sorting.QuickSelect(tc.input, tc.k)
+		})
+	}
+}

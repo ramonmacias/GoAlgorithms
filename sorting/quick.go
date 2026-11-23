@@ -80,3 +80,49 @@ func QuickImproved(a []int) {
 	}
 	sortRange(0, len(a))
 }
+
+// QuickSelect returns the value at zero-based index k in sorted order, modifying
+// a in place. It panics if k is outside [0, len(a)). Randomized three-way
+// quickselect takes expected O(n) time and worst-case O(n^2). Recursion uses
+// expected O(log n) stack space and O(n) in the worst case.
+//
+// C. A. R. (Tony) Hoare published quickselect in 1961 as "Algorithm 65: Find,"
+// alongside his early quicksort work. Both algorithms partition around a pivot,
+// but selection follows only the partition containing the requested rank rather
+// than sorting both sides. This variant uses three-way partitioning to finish
+// immediately when k falls in the block of values equal to the pivot.
+func QuickSelect(a []int, k int) int {
+	if k < 0 || k >= len(a) {
+		panic("sorting.QuickSelect: k out of range")
+	}
+	var find func(l, r int) int
+	find = func(l, r int) int {
+		if r-l == 1 {
+			return a[k]
+		}
+		x := a[rand.Intn(r-l)+l]
+		lt, i, gt := l, l, r
+		for i < gt {
+			switch {
+			case a[i] < x:
+				a[lt], a[i] = a[i], a[lt]
+				lt++
+				i++
+			case a[i] > x:
+				gt--
+				a[i], a[gt] = a[gt], a[i]
+			default:
+				i++
+			}
+		}
+		switch {
+		case k < lt:
+			return find(l, lt)
+		case k >= gt:
+			return find(gt, r)
+		default:
+			return x
+		}
+	}
+	return find(0, len(a))
+}
